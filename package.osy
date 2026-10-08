@@ -1,0 +1,24 @@
+// Osysharp.Pdf as a package: two controls, four bundles, embedded fonts and a WebAssembly module.
+//
+// `licenses/` is not shipped. Both pdf.js asset directories carry extensionless `LICENSE_*` files, which are not
+// servable control assets and would fail registration, so scripts/build-chunks.mjs moves them to `licenses/`. The
+// redistribution obligation is met by the repository carrying the licence texts, not by serving them to a browser.
+// `node_modules/` is not shipped either. Nothing is excluded implicitly: the globs below are the complete list of
+// what the package contains.
+package Osysharp.Pdf {
+  version     "1.0.1";
+  minPlatform "0.9.0";
+  contract    "1.1";
+  summary     "a paged PDF reader over a `FileAsset`, canvas-rendered, with a real text layer.";
+
+  model    "*.osy";
+  controls "osyrin.lock";
+  controls "pdf.js";
+  controls "pdf-thumbnail.js";
+  controls "pdfjs-core.js";
+  controls "pdfjs-worker.js";
+  controls "wasm/**";
+  // Listed under `controls`, not `fonts`. The `fonts` role is for an app's own webfonts; these are pdf.js's internal
+  // standard fonts (`.pfb`, plus Liberation `.ttf`), fetched by the control at runtime, so they are control assets.
+  controls "fonts/**";
+}

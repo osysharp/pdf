@@ -1,0 +1,14 @@
+{
+  "name": "osy-kit-pdf",
+  "private": true,
+  "description": "Build deps for the Pdf control kit's shim. `osy control build kits/pdf` prefers this directory's own node_modules/.bin/esbuild.",
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "pdfjs-dist": "^5.4.149",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "chunks": "node scripts/build-chunks.mjs"
+  }
+}

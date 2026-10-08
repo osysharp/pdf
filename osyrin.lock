@@ -1,0 +1,82 @@
+{
+  "platform": {
+    "version": "0.9.0"
+  },
+  "entries": [],
+  "controls": [
+    {
+      "name": "PdfThumbnail",
+      "hash": "e2bec081c987a18f283de530b9316f4d0b1ea1e8f14bc65afe6d74d059a4edf9",
+      "file": "pdf-thumbnail.js",
+      "contentType": "text/javascript",
+      "source": "pdf-thumbnail.ts",
+      "chunks": [
+        {
+          "name": "Core",
+          "hash": "b0fc97331dc1fc03c4a381ebdd88f751a4d12de4ec97fa1faf18bb37721a4b5b",
+          "file": "pdfjs-core.js",
+          "contentType": "text/javascript"
+        },
+        {
+          "name": "Fonts",
+          "hash": "a9139783ebc62353bd93e8329f8bb62d462f287545565a7a4fb911e1049373ca",
+          "file": "",
+          "contentType": "application/json",
+          "dir": "fonts",
+          "entry": "FoxitSerif.pfb"
+        },
+        {
+          "name": "Wasm",
+          "hash": "ac8f48556c38ac69fcd2faaf50a9a4b3224cebd8f67b8cd45afc05d82d574da4",
+          "file": "",
+          "contentType": "application/json",
+          "dir": "wasm",
+          "entry": "openjpeg.wasm"
+        },
+        {
+          "name": "Worker",
+          "hash": "52fadd5b81b6abd1eb665bab0c3749a8ad6a293fcb6ee9d9e0309f29d4f82619",
+          "file": "pdfjs-worker.js",
+          "contentType": "text/javascript"
+        }
+      ]
+    },
+    {
+      "name": "PdfViewer",
+      "hash": "f3a6bb03d236cd736cc492b35d2c57a41771427aec5c4b13a2bf51b352faac1c",
+      "file": "pdf.js",
+      "contentType": "text/javascript",
+      "source": "pdf.ts",
+      "chunks": [
+        {
+          "name": "Core",
+          "hash": "b0fc97331dc1fc03c4a381ebdd88f751a4d12de4ec97fa1faf18bb37721a4b5b",
+          "file": "pdfjs-core.js",
+          "contentType": "text/javascript"
+        },
+        {
+          "name": "Fonts",
+          "hash": "a9139783ebc62353bd93e8329f8bb62d462f287545565a7a4fb911e1049373ca",
+          "file": "",
+          "contentType": "application/json",
+          "dir": "fonts",
+          "entry": "FoxitSerif.pfb"
+        },
+        {
+          "name": "Wasm",
+          "hash": "ac8f48556c38ac69fcd2faaf50a9a4b3224cebd8f67b8cd45afc05d82d574da4",
+          "file": "",
+          "contentType": "application/json",
+          "dir": "wasm",
+          "entry": "openjpeg.wasm"
+        },
+        {
+          "name": "Worker",
+          "hash": "52fadd5b81b6abd1eb665bab0c3749a8ad6a293fcb6ee9d9e0309f29d4f82619",
+          "file": "pdfjs-worker.js",
+          "contentType": "text/javascript"
+        }
+      ]
+    }
+  ]
+}

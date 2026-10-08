@@ -1,0 +1,18 @@
+{
+  // Type-checking ONLY — esbuild does the emit, and it strips types without looking at them. Without this, a shim
+  // can disagree with the ABI the platform generated for it and nothing says so until a browser: that is exactly how
+  // `host.data` came to be missing from the generated contract while the runtime shipped it, and how this shim came
+  // to hand-roll the contract by reverse-engineering it (M53).
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["**/*.ts", "**/*.d.ts"]
+}

@@ -1,0 +1,51 @@
+// PdfThumbnail: the picture half of Pdf@1 (`using Osysharp.Pdf;`).
+//
+// A second control rather than a flag on the viewer. A thumbnail is not a small viewer: it has no paging, no zoom, no
+// toolbar and no text layer, so `PdfViewer`'s `fit`, `zoom` and `layout` props, its `pageChanged` event and all five
+// of its commands would be meaningless in that mode. A `thumbnail: true` flag would leave much of the control's
+// surface silently doing nothing, which is worse than two controls that each mean what they say.
+//
+// The two share what is the same: the signing round trip, the four asset roots and the failure wording live in one
+// module (pdf-open.ts), and both bundles name the same content-addressed chunks, so a page showing a list of
+// thumbnails and then one full document downloads the renderer once.
+
+namespace Osysharp.Pdf;
+
+/// One page of a PDF as a picture: page 1 by default, at a width you choose, with no chrome and nothing to press.
+/// What a file list wants beside a filename, and what a card wants above a title.
+/// ⚠ It downloads the document to make the picture. The bytes come to the browser and the page is drawn there,
+/// which is right for a handful on screen and wrong for a list of hundreds; for that, store a pre-rendered image.
+/// ⚠ It is not in `Osysharp.Ui` and not in scope by default: add `use Osysharp.Pdf@1;` to app.osy, then
+/// `using Osysharp.Pdf;` in the file that renders it.
+/// e.g. `PdfThumbnail(fileAsset: handling.Fil.Id, width: 96)`
+control PdfThumbnail {
+  contractVersion "1.1"
+  participation headless
+  props {
+    // The row, never the bytes and never a URL — the same rule the viewer keeps, for the same reason.
+    Guid fileAsset;
+    // Which page to picture. Almost always the first, but a cover sheet is a real thing and so is picking the page
+    // a search matched.
+    int page = 1;
+    // The drawn width in CSS pixels; the height follows the page's own aspect. A number rather than a size token
+    // because this is a raster: the value decides how many pixels are actually painted, not how much room the box
+    // takes, and rounding a token to a device pixel is exactly where a thumbnail goes soft.
+    int width = 128;
+  }
+  events {
+    // The document opened and its length is known — enough for a "3 pages" caption beside the picture.
+    loaded(int pageCount);
+    // It could not be opened or drawn, in words. A thumbnail that silently renders nothing is indistinguishable
+    // from a document whose first page is blank, and a file list is exactly where that confusion is expensive.
+    failed(string reason);
+  }
+  chunks { Core; Worker; Fonts; Wasm; }
+  probe {
+    /// A page has actually been painted.
+    bool rendered;
+    /// How many pages the document has; 0 before it opens.
+    int pageCount;
+    /// Why it failed, when it did.
+    string? failure;
+  }
+}

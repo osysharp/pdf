@@ -1,0 +1,112 @@
+// Pdf@1: the PdfViewer control kit (`using Osysharp.Pdf;`).
+//
+// A paged, zoomable PDF reader over a `FileAsset`, distributed as an ordinary external kit: a lock entry, a pinned
+// version and hash verification, like any other kit. It is built on the public foreign-control ABI and needs nothing
+// else from the platform.
+//
+// Why a kit rather than a built-in element. The obvious way to show a PDF is to wrap `<iframe>` or `<embed>` and let
+// the browser's own viewer do the work. That would hand every app an arbitrary-`src` frame (a clickjacking surface),
+// and what it renders is browser chrome: unstyleable, different in every browser, with whatever accessibility that
+// browser gives it, and in some browsers and headless environments not rendered at all. pdf.js paints to a canvas,
+// so it renders the same everywhere, it can be tested headless, and the page's text is real text.
+//
+// The document is addressed, not passed. A signed file URL is a bearer capability that expires, and a reader working
+// through a long document can outlive it. An app that minted a URL and passed it as a prop would hand the viewer
+// something that dies mid-document with no way to renew it. So the app passes the row, and the shim asks
+// `POST /api/files/{id}/sign` over `host.data` whenever it needs a URL. That request is authorized by reading the
+// asset through the caller's own secured context, so the app's declared `FileAsset` security is the whole access rule
+// and this kit adds no authorization surface of its own.
+
+namespace Osysharp.Pdf;
+
+/// A paged PDF reader over one `FileAsset`: canvas-rendered, with a real text layer, so the document can be
+/// selected, searched and read by a screen reader. The app supplies the row and dresses the toolbar; the viewer
+/// owns loading, paging, scaling and rendering.
+/// ⚠ It is not in `Osysharp.Ui` and not in scope by default: add `use Osysharp.Pdf@1;` to app.osy, then
+/// `using Osysharp.Pdf;` in the file that renders it.
+/// e.g. `PdfViewer(fileAsset: handling.Fil.Id)`
+control PdfViewer {
+  contractVersion "1.1"
+  participation headless
+  props {
+    // The row, never the bytes and never a URL. See the header: a URL passed as a prop expires under a reader.
+    Guid fileAsset;
+    // Which page is showing. STATE, so a prop: it has a resting value, the app may want to bind it to its own
+    // "page 3 of 12", and a deep link opens on it. The verbs below move it and report back through `pageChanged`.
+    int page = 1;
+    // How a page is scaled to the space the app gave it. `width` is the reading default: most documents are read as a
+    // column of text, and fitting the whole page instead makes A4 unreadable in any panel narrower than a screen.
+    [Values(width, page, actual)] string fit = "width";
+    // Zoom as a PERCENTAGE of the fit scale, not a multiplier. Whole numbers because that is what a zoom control
+    // offers (100, 125, 150) and what a URL carries; a fractional multiplier would also make prop diffing depend on
+    // float equality, which is a bug waiting for a 1.1000000000000001.
+    int zoom = 100;
+    // Continuous scroll or one page at a time. Continuous is what reading a long document wants; `single` is for a
+    // viewer in a narrow panel beside a form, where a scroll gesture belongs to the page and not to the document.
+    [Values(continuous, single)] string layout = "continuous";
+  }
+  events {
+    // The document opened and its length is known — what an app needs before it can render "of 12".
+    loaded(int pageCount);
+    // The visible page changed, however it changed: a command, a scroll, or a jump. The app's own `page` binding
+    // follows this rather than trying to predict it.
+    pageChanged(int page);
+    // The document could not be opened or a page could not be drawn. A REASON, in words, because the alternative is
+    // a blank rectangle: a PDF that fails to load and a PDF whose first page is genuinely white look identical.
+    failed(string reason);
+  }
+  // The verbs. Each has no resting value — asking twice means asking twice — which is what separates a command
+  // from a prop. Paging and zoom live here and NOT as an app-side calculation because the viewer is the only thing
+  // that knows the page count, the fit scale and where the scroll currently is.
+  commands {
+    /// Move to the next page. No-op on the last.
+    NextPage;
+    /// Move to the previous page. No-op on the first.
+    PreviousPage;
+    /// Enlarge by one step.
+    ZoomIn;
+    /// Reduce by one step.
+    ZoomOut;
+    /// Return to the declared `fit` at 100%.
+    ResetZoom;
+  }
+  // The viewer's own toolbar region, filled by the app and given the commands above. The viewer ships no toolbar of
+  // its own: a page number, a zoom control and a download link are the app's words, controls and layout, and an app
+  // that wants none should not carry one. What stays with the viewer is everything behind them: which page is current,
+  // what the fit scale is, and when either changed.
+  slots { Toolbar; }
+  // pdf.js, in four parts, none of them loaded at mount.
+  //
+  //   Core   (425 KB) — the main-thread API. One file: it is already an ESM bundle.
+  //   Worker (1.2 MB) — the parsing engine, loaded as a Worker by URL rather than imported, so it needs an address
+  //                     of its own and a package would add nothing.
+  //   Fonts  (762 KB) — the base-14 substitutes, needed only by a document that does not embed its fonts. A
+  //                     package, because pdf.js requests one file at a time relative to a directory root.
+  //   Wasm   (1.5 MB) — JBIG2 and JPEG2000 decoders. A package for the same reason.
+  //
+  // Wasm is not as optional as it looks. A scanned page is usually JBIG2 or JPEG2000, and pdf.js ships a
+  // `*_nowasm_fallback.js` beside each decoder, so without these a scan renders blank rather than failing: an
+  // absence, not an error.
+  //
+  // `cmaps/` (1.6 MB, CJK encodings) is deliberately not shipped. Add it when a document needs it (one entry here and
+  // one in scripts/build-chunks.mjs) rather than shipping 1.6 MB that most documents never use.
+  chunks { Core; Worker; Fonts; Wasm; }
+  // What this viewer reports about itself: the facts a test needs and the screen does not show.
+  //
+  // A rendered page is pixels on a canvas. A test cannot read "page 3 of 12" off it, and asserting the app's rendering
+  // of those numbers tests the app rather than the viewer, and says nothing about an app that renders neither.
+  // `rendered` matters most: it is the difference between a viewer that drew the page and a viewer that drew nothing,
+  // which on screen are a document and a white rectangle.
+  probe {
+    /// The page currently showing.
+    int page;
+    /// How many pages the document has; 0 before it opens.
+    int pageCount;
+    /// The current zoom, as the percentage `zoom` is expressed in.
+    int zoom;
+    /// A page has actually been painted to the canvas.
+    bool rendered;
+    /// Why the document or page failed, when it did.
+    string? failure;
+  }
+}
