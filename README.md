@@ -31,7 +31,7 @@ osy lock      # resolves the package and pins its content address in osyrin.lock
 ```osy
 using Osysharp.Pdf;
 
-[Page("/documents/{id}")]
+[Route("/documents/{id}")]
 component DocumentPage(Guid id) {
   int shown = 1;
   int pages = 0;

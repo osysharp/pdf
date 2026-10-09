@@ -6,7 +6,7 @@
 // `node_modules/` is not shipped either. Nothing is excluded implicitly: the globs below are the complete list of
 // what the package contains.
 package Osysharp.Pdf {
-  version     "1.0.1";
+  version     "1.0.2";
   minPlatform "0.9.0";
   contract    "1.1";
   summary     "a paged PDF reader over a `FileAsset`, canvas-rendered, with a real text layer.";
